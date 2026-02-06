@@ -1,3 +1,5 @@
 spring:
   application:
     name: poc-catalogo
+  profiles:
+    active: dev
