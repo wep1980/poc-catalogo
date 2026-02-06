@@ -33,7 +33,7 @@ public class Produto implements Serializable {
     @JoinTable(name = "tb_produto_categoria",
             joinColumns = @JoinColumn(name = "produto_id"),
             inverseJoinColumns = @JoinColumn(name = "categoria_id"))
-    private transient Set<Categoria> categorias = new HashSet<>(); // O Set é utilizado para garantir que não haja categorias duplicadas associadas a um produto.
+    private Set<Categoria> categorias = new HashSet<>(); // O Set é utilizado para garantir que não haja categorias duplicadas associadas a um produto.
 
     public Produto() {}
 
