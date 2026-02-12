@@ -28,7 +28,7 @@ jobs:
           java-version: '17'
 
       - name: Build e Testes
-        run: mvn clean verify
+        run: mvn clean verify -Dspring.profiles.active=test
 
       - name: Login no GHCR
         run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
