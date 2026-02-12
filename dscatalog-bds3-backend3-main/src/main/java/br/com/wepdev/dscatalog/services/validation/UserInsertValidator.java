@@ -1,0 +1,45 @@
+package br.com.wepdev.dscatalog.services.validation;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
+
+import br.com.wepdev.dscatalog.dto.UserInsertDTO;
+import br.com.wepdev.dscatalog.domain.User;
+import br.com.wepdev.dscatalog.repositories.UserRepository;
+import br.com.wepdev.dscatalog.controller.exceptions.FieldMessage;
+
+public class UserInsertValidator implements ConstraintValidator<UserInsertValid, UserInsertDTO> {
+	
+
+	private final UserRepository repository;
+
+    public UserInsertValidator(UserRepository repository) {
+        this.repository = repository;
+    }
+
+    @Override
+	public void initialize(UserInsertValid ann) {
+		// Método não requer inicialização para este validador customizado
+	}
+
+	@Override
+	public boolean isValid(UserInsertDTO dto, ConstraintValidatorContext context) {
+		
+		List<FieldMessage> list = new ArrayList<>();
+		
+		User user = repository.findByEmail(dto.getEmail());
+		if (user != null) {
+			list.add(new FieldMessage("email", "Email já existe"));
+		}
+
+		for (FieldMessage e : list) {
+			context.disableDefaultConstraintViolation();
+			context.buildConstraintViolationWithTemplate(e.getMessage()).addPropertyNode(e.getFieldName())
+					.addConstraintViolation();
+		}
+		return list.isEmpty();
+	}
+}
