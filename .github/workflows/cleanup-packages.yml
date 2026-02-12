@@ -1,0 +1,21 @@
+name: Cleanup Old Docker Images
+
+on:
+  schedule:
+    - cron: '0 6 * * 1,3,6'  # Seg, Qua, Sáb às 03h Brasil
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+
+    steps:
+      - name: Delete old container versions (keep last 3)
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: poc-catalogo
+          package-type: container
+          min-versions-to-keep: 3
+
