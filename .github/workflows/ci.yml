@@ -21,7 +21,7 @@ jobs:
 
     steps:
 
-      # 1️⃣ Checkout
+      # 1️⃣ Checkout código
       - name: Checkout código
         uses: actions/checkout@v3
 
@@ -37,7 +37,7 @@ jobs:
       - name: Permissão no Maven Wrapper
         run: chmod +x mvnw
 
-      # 4️⃣ Build e Testes (profile test)
+      # 4️⃣ Build e Testes
       - name: Build e Testes
         run: ./mvnw clean verify -Dspring.profiles.active=test
 
@@ -49,11 +49,27 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "Versão detectada: $VERSION"
 
-      # 6️⃣ Login no GHCR
+      # 6️⃣ Login no GHCR (necessário antes da validação)
       - name: Login no GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      # 7️⃣ Build da imagem Docker
+      # 7️⃣ Validar se a versão já existe
+      - name: Validate version was changed
+        run: |
+          IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/poc-catalogo
+          VERSION=${{ env.VERSION }}
+
+          echo "Checking if version $VERSION already exists..."
+
+          if docker manifest inspect $IMAGE_NAME:$VERSION > /dev/null 2>&1; then
+            echo "❌ ERROR: Version $VERSION already exists in registry."
+            echo "Please update the version in pom.xml before deploying."
+            exit 1
+          else
+            echo "✅ Version $VERSION is new. Continuing build."
+          fi
+
+      # 8️⃣ Build da imagem Docker
       - name: Build Docker image
         run: |
           IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/poc-catalogo
@@ -65,11 +81,11 @@ jobs:
             -t $IMAGE_NAME:latest \
             -t $IMAGE_NAME:${{ github.sha }} .
 
-      # 8️⃣ Push das imagens
+      # 9️⃣ Push das imagens
       - name: Push Docker image
         run: |
           IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/poc-catalogo
-          
-          docker push $IMAGE_NAME:latest
+
           docker push $IMAGE_NAME:${VERSION}
+          docker push $IMAGE_NAME:latest
           docker push $IMAGE_NAME:${{ github.sha }}
