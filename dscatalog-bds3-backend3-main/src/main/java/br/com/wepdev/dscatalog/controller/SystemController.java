@@ -1,6 +1,8 @@
 package br.com.wepdev.dscatalog.controller;
 
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,6 +15,10 @@ public class SystemController {
 
     private final Instant startTime = Instant.now();
 
+    private static final DateTimeFormatter FORMATTER =
+            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+                    .withZone(ZoneId.of("America/Sao_Paulo"));
+
     @GetMapping("/system/info")
     public ResponseEntity<?> info() {
 
@@ -24,8 +30,14 @@ public class SystemController {
 
             response.put("application", "dscatalog");
             response.put("version", version != null ? version : "unknown");
-            response.put("buildTime", buildTime != null ? buildTime : "unknown");
-            response.put("containerStartTime", startTime.toString());
+
+            response.put("buildTime",
+                    buildTime != null
+                            ? FORMATTER.format(Instant.parse(buildTime))
+                            : "unknown");
+
+            response.put("containerStartTime",
+                    FORMATTER.format(startTime));
 
             return ResponseEntity.ok(response);
 
@@ -33,8 +45,9 @@ public class SystemController {
             Map<String, Object> error = new HashMap<>();
 
             error.put("error", "SYSTEM_INFO_ERROR");
-            error.put("message", "Failed to retrieve system information");
-            error.put("timestamp", Instant.now().toString());
+            error.put("message", e.getMessage());
+            error.put("timestamp",
+                    FORMATTER.format(Instant.now()));
 
             return ResponseEntity.internalServerError().body(error);
         }
